@@ -1,65 +1,110 @@
-import Image from "next/image";
+'use client';
+
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Game } from '../game/Game';
+import { GameCanvas } from '../components/GameCanvas';
+import { HUD } from '../components/HUD';
+import { Queue } from '../components/Queue';
+import { GameOver } from '../components/GameOver';
 
 export default function Home() {
+  const gameRef = useRef<Game | null>(null);
+  const [, forceUpdate] = useState({});
+
+  // Initialize game
+  useEffect(() => {
+    gameRef.current = new Game();
+    gameRef.current.start();
+    forceUpdate({});
+  }, []);
+
+  // Handle keyboard input
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!gameRef.current) return;
+
+      switch (e.key.toLowerCase()) {
+        case 'd':
+          gameRef.current.discard();
+          forceUpdate({});
+          break;
+        case 'r':
+          gameRef.current.restart();
+          forceUpdate({});
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  const handleGameUpdate = useCallback(() => {
+    forceUpdate({});
+  }, []);
+
+  const handleDiscard = useCallback(() => {
+    if (gameRef.current) {
+      gameRef.current.discard();
+      forceUpdate({});
+    }
+  }, []);
+
+  const handleRestart = useCallback(() => {
+    if (gameRef.current) {
+      gameRef.current.restart();
+      forceUpdate({});
+    }
+  }, []);
+
+  if (!gameRef.current) {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="text-white text-xl">Loading...</div>
+      </div>
+    );
+  }
+
+  const game = gameRef.current;
+  const state = game.getState();
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
+      {/* Title */}
+      <h1 className="text-4xl font-bold text-cyan-400 mb-6">Conduit</h1>
+
+      {/* Game layout */}
+      <div className="flex gap-6">
+        {/* Main game area */}
+        <GameCanvas game={game} onGameUpdate={handleGameUpdate} />
+
+        {/* Side panel */}
+        <div className="flex flex-col gap-4 w-48">
+          <HUD state={state} />
+          <Queue
+            queue={game.getQueue()}
+            onDiscard={handleDiscard}
+            discardsRemaining={state.discards}
+          />
+
+          {/* Restart button */}
+          <button
+            onClick={handleRestart}
+            className="bg-gray-700 hover:bg-gray-600 text-white font-medium py-2 px-4 rounded transition-colors"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Restart (R)
+          </button>
         </div>
-      </main>
+      </div>
+
+      {/* Instructions */}
+      <div className="mt-6 text-gray-500 text-sm text-center">
+        <p>Click to place pipes | D to discard | R to restart</p>
+        <p className="mt-1">Connect {10}+ segments before the water floods!</p>
+      </div>
+
+      {/* Game over modal */}
+      <GameOver state={state} onRestart={handleRestart} />
     </div>
   );
 }
