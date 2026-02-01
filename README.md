@@ -30,6 +30,7 @@ Open http://localhost:3000 and start clicking.
 
 - **Click** - Place the current pipe
 - **D** - Discard current piece (limited uses)
+- **P** - Pause game
 - **R** - Restart game
 
 ## How to Win

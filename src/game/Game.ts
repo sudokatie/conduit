@@ -11,6 +11,8 @@ import {
   POINTS_PER_SEGMENT,
   CROSS_BONUS,
   NO_DISCARD_BONUS,
+  SPEED_BONUS_PER_SECOND,
+  PAR_TIME,
 } from './constants';
 
 export class Game {
@@ -36,6 +38,8 @@ export class Game {
       discards: MAX_DISCARDS,
       countdown: START_DELAY,
       flowTimer: FLOW_INTERVAL,
+      paused: false,
+      elapsedTime: 0,
     };
   }
 
@@ -129,6 +133,11 @@ export class Game {
       return;
     }
 
+    // Don't update if paused
+    if (this.state.paused) {
+      return;
+    }
+
     let remainingTime = deltaTime;
 
     if (this.state.status === 'waiting') {
@@ -142,6 +151,9 @@ export class Game {
       this.state.status = 'playing';
     }
 
+    // Track elapsed time for speed bonus
+    this.state.elapsedTime += remainingTime;
+
     // Playing state - advance water
     this.flowAccumulator += remainingTime;
 
@@ -153,6 +165,20 @@ export class Game {
         break;
       }
     }
+  }
+
+  // Toggle pause state
+  togglePause(): boolean {
+    if (this.state.status !== 'playing') {
+      return false;
+    }
+    this.state.paused = !this.state.paused;
+    return true;
+  }
+
+  // Check if game is paused
+  isPaused(): boolean {
+    return this.state.paused;
   }
 
   private advanceWater(): void {
@@ -204,6 +230,12 @@ export class Game {
     // No discard bonus
     if (this.state.discards === MAX_DISCARDS) {
       finalScore += NO_DISCARD_BONUS;
+    }
+
+    // Speed bonus: +10 per second under par time
+    const secondsUnderPar = Math.floor(PAR_TIME - this.state.elapsedTime);
+    if (secondsUnderPar > 0) {
+      finalScore += secondsUnderPar * SPEED_BONUS_PER_SECOND;
     }
 
     return finalScore;

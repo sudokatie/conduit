@@ -15,7 +15,7 @@ export class Grid {
     this.cells = this.createEmptyGrid();
     
     // Default entry on left side, random row
-    const entryRow = Math.floor(height / 2);
+    const entryRow = Math.floor(Math.random() * height);
     this.entryPosition = { x: 0, y: entryRow };
     this.entryDirection = 'right'; // Water flows right into the grid
     this.cells[entryRow][0].state = 'entry';

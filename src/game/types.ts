@@ -41,6 +41,8 @@ export interface GameState {
   discards: number;
   countdown: number; // Seconds until water flows
   flowTimer: number; // Time until next flow tick
+  paused: boolean; // Game is paused
+  elapsedTime: number; // Total time since water started flowing
 }
 
 export interface FlowState {

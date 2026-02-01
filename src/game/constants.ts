@@ -20,6 +20,8 @@ export const MAX_DISCARDS = 3;
 export const POINTS_PER_SEGMENT = 10;
 export const CROSS_BONUS = 25;
 export const NO_DISCARD_BONUS = 200;
+export const SPEED_BONUS_PER_SECOND = 10;
+export const PAR_TIME = 30; // Par time in seconds for speed bonus
 
 // Pipe definitions with connections
 export const PIPE_CONNECTIONS: Record<PipeType, Direction[]> = {

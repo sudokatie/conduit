@@ -52,6 +52,8 @@ export function GameCanvas({ game, onGameUpdate }: GameCanvasProps) {
       const state = game.getState();
       if (status === 'waiting' && state.countdown > 0) {
         rendererRef.current.drawCountdown(state.countdown);
+      } else if (state.paused) {
+        rendererRef.current.drawPaused();
       } else if (status === 'flooded' || status === 'won') {
         rendererRef.current.drawGameOver(
           status === 'won',

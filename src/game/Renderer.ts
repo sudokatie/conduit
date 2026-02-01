@@ -468,6 +468,29 @@ export class Renderer {
     ctx.fillText('Press R to restart', cx, cy + 100);
   }
 
+  // Draw pause overlay
+  drawPaused(): void {
+    const ctx = this.ctx;
+    const cx = this.width / 2;
+    const cy = this.height / 2;
+
+    // Semi-transparent overlay
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+    ctx.fillRect(0, 0, this.width, this.height);
+
+    // Pause text
+    ctx.fillStyle = COLORS.ui.text;
+    ctx.font = 'bold 48px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('PAUSED', cx, cy);
+
+    // Resume hint
+    ctx.font = '18px sans-serif';
+    ctx.fillStyle = COLORS.ui.muted;
+    ctx.fillText('Press P to resume', cx, cy + 40);
+  }
+
   // Get canvas context for external use
   getContext(): CanvasRenderingContext2D {
     return this.ctx;

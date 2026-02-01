@@ -32,6 +32,10 @@ export default function Home() {
           gameRef.current.restart();
           forceUpdate({});
           break;
+        case 'p':
+          gameRef.current.togglePause();
+          forceUpdate({});
+          break;
       }
     };
 
@@ -99,7 +103,7 @@ export default function Home() {
 
       {/* Instructions */}
       <div className="mt-6 text-gray-500 text-sm text-center">
-        <p>Click to place pipes | D to discard | R to restart</p>
+        <p>Click to place pipes | D to discard | P to pause | R to restart</p>
         <p className="mt-1">Connect {10}+ segments before the water floods!</p>
       </div>
 

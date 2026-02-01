@@ -55,6 +55,7 @@ describe('Flow', () => {
   describe('advance through pipes', () => {
     it('should advance through horizontal pipe', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 'horizontal');
       const flow = new Flow(grid);
       
@@ -81,6 +82,7 @@ describe('Flow', () => {
 
     it('should turn through elbow pipe', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       // Water flows right, enters through left, needs elbow with left+bottom connections
       grid.placePipe(1, 5, 'elbow_bl'); // bottom-left elbow
       const flow = new Flow(grid);
@@ -94,6 +96,7 @@ describe('Flow', () => {
 
     it('should advance through multiple pipes', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 'horizontal');
       grid.placePipe(2, 5, 'horizontal');
       grid.placePipe(3, 5, 'horizontal');
@@ -110,6 +113,7 @@ describe('Flow', () => {
 
     it('should track path correctly', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 'horizontal');
       grid.placePipe(2, 5, 'horizontal');
       const flow = new Flow(grid);
@@ -128,6 +132,7 @@ describe('Flow', () => {
   describe('flood detection', () => {
     it('should flood when no pipe at next position', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       // No pipe placed at (1, 5)
       const flow = new Flow(grid);
       
@@ -140,6 +145,7 @@ describe('Flow', () => {
 
     it('should flood when pipe does not accept flow direction', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 'vertical'); // Can't accept from left
       const flow = new Flow(grid);
       
@@ -152,6 +158,7 @@ describe('Flow', () => {
 
     it('should flood when leaving grid', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 'horizontal');
       grid.placePipe(2, 5, 'horizontal');
       grid.placePipe(3, 5, 'horizontal');
@@ -173,6 +180,7 @@ describe('Flow', () => {
 
     it('should not advance after flooding', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       const flow = new Flow(grid);
       
       flow.start();
@@ -187,6 +195,7 @@ describe('Flow', () => {
   describe('cross pipe handling', () => {
     it('should pass through cross pipe', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 'cross');
       const flow = new Flow(grid);
       
@@ -199,23 +208,24 @@ describe('Flow', () => {
 
     it('should maintain direction through cross pipe when going straight', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 'cross');
       const flow = new Flow(grid);
       
       flow.start();
       flow.advance();
       
-      // Should continue in same direction (right becomes left exit, meaning water goes left/right)
-      // Actually cross pipe exits: water from left can exit top, bottom, or left
-      // But the first exit should be in the continuing direction
+      // Cross pipe has exits in all directions except entry
+      // Water enters from left (entry direction right), exits through top, bottom, or right
       const dir = flow.getCurrentDirection();
-      expect(['top', 'bottom', 'left']).toContain(dir);
+      expect(['top', 'bottom', 'right']).toContain(dir);
     });
   });
 
   describe('T pipe handling', () => {
     it('should flow through T pipe from valid entry', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 't_bottom'); // left, right, bottom
       const flow = new Flow(grid);
       
@@ -242,6 +252,7 @@ describe('Flow', () => {
   describe('state management', () => {
     it('should return correct state', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 'horizontal');
       const flow = new Flow(grid);
       
@@ -257,6 +268,7 @@ describe('Flow', () => {
 
     it('should reset on start()', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 'horizontal');
       const flow = new Flow(grid);
       
@@ -274,6 +286,7 @@ describe('Flow', () => {
   describe('complex paths', () => {
     it('should navigate L-shaped path', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       // Water flows right from entry (0,5)
       // elbow_bl has left+bottom, so water enters from left, exits bottom
       grid.placePipe(1, 5, 'horizontal');
@@ -295,6 +308,7 @@ describe('Flow', () => {
 
     it('should navigate S-shaped path', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       // Water flows right from entry (0,5)
       // elbow_bl: left+bottom, enters from left, exits bottom
       // elbow_tr: top+right, enters from top, exits right
@@ -316,6 +330,7 @@ describe('Flow', () => {
   describe('water fill tracking', () => {
     it('should fill pipe with water after advance', () => {
       const grid = new Grid(7, 10);
+      grid.setEntry(0, 5, 'right');
       grid.placePipe(1, 5, 'horizontal');
       const flow = new Flow(grid);
       

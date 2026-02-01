@@ -14,13 +14,13 @@ describe('Grid', () => {
       expect(grid.getHeight()).toBe(8);
     });
 
-    it('should initialize with empty cells', () => {
+    it('should initialize with empty cells except entry', () => {
       const grid = new Grid(3, 3);
+      const entryPos = grid.getEntryPosition();
       for (let y = 0; y < 3; y++) {
         for (let x = 0; x < 3; x++) {
           const cell = grid.getCell(x, y);
-          if (x === 0 && y === 1) {
-            // Entry point
+          if (x === entryPos.x && y === entryPos.y) {
             expect(cell?.state).toBe('entry');
           } else {
             expect(cell?.state).toBe('empty');
@@ -30,11 +30,12 @@ describe('Grid', () => {
       }
     });
 
-    it('should set default entry point at middle left', () => {
+    it('should set default entry point on left edge', () => {
       const grid = new Grid(7, 10);
       const entryPos = grid.getEntryPosition();
       expect(entryPos.x).toBe(0);
-      expect(entryPos.y).toBe(5);
+      expect(entryPos.y).toBeGreaterThanOrEqual(0);
+      expect(entryPos.y).toBeLessThan(10);
     });
 
     it('should set default entry direction to right', () => {
