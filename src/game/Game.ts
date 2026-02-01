@@ -13,6 +13,8 @@ import {
   NO_DISCARD_BONUS,
   SPEED_BONUS_PER_SECOND,
   PAR_TIME,
+  FLOW_SPEED_SCALE,
+  MIN_FLOW_INTERVAL,
 } from './constants';
 
 export class Game {
@@ -21,12 +23,14 @@ export class Game {
   private queue: PipeType[];
   private state: GameState;
   private flowAccumulator: number; // Time accumulator for flow ticks
+  private headFillProgress: number; // Animation progress for water head (0-1)
 
   constructor() {
     this.grid = new Grid();
     this.flow = new Flow(this.grid);
     this.queue = [];
     this.flowAccumulator = 0;
+    this.headFillProgress = 0;
     this.state = this.createInitialState();
   }
 
@@ -49,6 +53,7 @@ export class Game {
     this.queue = this.generateQueue(QUEUE_SIZE);
     this.state = this.createInitialState();
     this.flowAccumulator = 0;
+    this.headFillProgress = 0;
   }
 
   private generateQueue(count: number): PipeType[] {
@@ -157,13 +162,22 @@ export class Game {
     // Playing state - advance water
     this.flowAccumulator += remainingTime;
 
-    while (this.flowAccumulator >= this.state.flowTimer) {
-      this.flowAccumulator -= this.state.flowTimer;
+    // Flow interval decreases as score increases
+    const currentInterval = this.getCurrentFlowInterval();
+
+    while (this.flowAccumulator >= currentInterval) {
+      this.flowAccumulator -= currentInterval;
+      this.headFillProgress = 0; // Reset fill progress when water advances
       this.advanceWater();
 
       if (this.state.status !== 'playing') {
         break;
       }
+    }
+
+    // Track fill progress for water head animation (0-1 over flow interval)
+    if (this.state.status === 'playing') {
+      this.headFillProgress = this.flowAccumulator / currentInterval;
     }
   }
 
@@ -274,6 +288,18 @@ export class Game {
   // Check if can place at position
   canPlaceAt(x: number, y: number): boolean {
     return this.grid.isValidPlacement(x, y);
+  }
+
+  // Get current fill progress for water head animation (0-1)
+  getHeadFillProgress(): number {
+    return this.headFillProgress;
+  }
+
+  // Calculate current flow interval based on score (gets faster as score increases)
+  getCurrentFlowInterval(): number {
+    const reduction = this.state.score * FLOW_SPEED_SCALE;
+    const interval = FLOW_INTERVAL - reduction;
+    return Math.max(interval, MIN_FLOW_INTERVAL);
   }
 
   // Restart the game

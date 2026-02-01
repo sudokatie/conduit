@@ -40,18 +40,22 @@ export const PIPE_CONNECTIONS: Record<PipeType, Direction[]> = {
 
 // Pipe generation weights (must sum to 100)
 export const PIPE_WEIGHTS: Record<PipeType, number> = {
-  horizontal: 20,
-  vertical: 20,
+  horizontal: 25,
+  vertical: 25,
   elbow_tl: 8,
   elbow_tr: 8,
   elbow_bl: 8,
   elbow_br: 8,
-  cross: 8,
-  t_top: 5,
-  t_bottom: 5,
-  t_left: 5,
-  t_right: 5,
+  cross: 5,
+  t_top: 3.25,
+  t_bottom: 3.25,
+  t_left: 3.25,
+  t_right: 3.25,
 };
+
+// Flow speed scaling - interval decreases as score increases
+export const FLOW_SPEED_SCALE = 0.002; // Reduce interval by this much per point
+export const MIN_FLOW_INTERVAL = 0.3; // Fastest flow speed (seconds)
 
 // Colors
 export const COLORS = {

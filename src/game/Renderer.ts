@@ -1,4 +1,4 @@
-import { PipeData, PipeType, Position, Direction } from './types';
+import { PipeData, PipeType, Position } from './types';
 import { Game } from './Game';
 import { Grid } from './Grid';
 import {
@@ -28,7 +28,7 @@ export class Renderer {
     this.clear();
     this.drawGrid(game.getGrid());
     this.drawEntry(game.getGrid());
-    this.drawPipes(game.getGrid());
+    this.drawPipes(game.getGrid(), game.getFlow().getCurrentPosition(), game.getHeadFillProgress());
     this.drawWaterPath(game.getFlow().getPath(), game.getGrid());
   }
 
@@ -119,18 +119,21 @@ export class Renderer {
     ctx.fill();
   }
 
-  drawPipes(grid: Grid): void {
+  drawPipes(grid: Grid, headPos?: Position, headFillProgress?: number): void {
     for (let y = 0; y < GRID_HEIGHT; y++) {
       for (let x = 0; x < GRID_WIDTH; x++) {
         const cell = grid.getCell(x, y);
         if (cell?.pipe) {
-          this.drawPipe(x, y, cell.pipe);
+          // Check if this is the water head position for animation
+          const isHead = headPos && x === headPos.x && y === headPos.y;
+          const fillProgress = isHead ? (headFillProgress ?? 1) : 1;
+          this.drawPipe(x, y, cell.pipe, fillProgress);
         }
       }
     }
   }
 
-  drawPipe(x: number, y: number, pipe: PipeData): void {
+  drawPipe(x: number, y: number, pipe: PipeData, fillProgress: number = 1): void {
     const ctx = this.ctx;
     const cx = x * CELL_SIZE + CELL_SIZE / 2;
     const cy = y * CELL_SIZE + CELL_SIZE / 2;
@@ -152,8 +155,11 @@ export class Renderer {
     // Draw water fill if pipe has water
     if (pipe.waterLevel > 0) {
       ctx.strokeStyle = COLORS.water;
-      ctx.lineWidth = pipeWidth - 4;
-      this.drawPipeShape(cx, cy, radius - 2, pipe.type, pipeWidth - 4);
+      // Water width grows from 0 to full based on fill progress (animation)
+      const maxWaterWidth = pipeWidth - 4;
+      const waterWidth = Math.max(2, maxWaterWidth * fillProgress);
+      ctx.lineWidth = waterWidth;
+      this.drawPipeShape(cx, cy, radius - 2, pipe.type, waterWidth);
     }
   }
 

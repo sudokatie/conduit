@@ -155,12 +155,13 @@ describe('Grid', () => {
 
     it('should update cell states correctly', () => {
       const grid = new Grid(5, 5);
-      const oldEntry = grid.getEntryPosition();
+      // Set entry to known position first to avoid flaky test
+      grid.setEntry(0, 0, 'right');
       
       grid.setEntry(0, 3, 'right');
       
       // Old entry should be empty
-      const oldCell = grid.getCell(oldEntry.x, oldEntry.y);
+      const oldCell = grid.getCell(0, 0);
       expect(oldCell?.state).toBe('empty');
       
       // New entry should be entry
