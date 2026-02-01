@@ -1,36 +1,99 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Conduit
 
-## Getting Started
+A browser-based pipe puzzle game. Connect pipes before the water floods everything. Think Pipe Dream, but with existential dread about whether your connections will hold.
 
-First, run the development server:
+## Why This Exists?
+
+Remember Pipe Dream? That DOS game where you frantically placed pipes while water rushed toward your poor planning decisions? This is that, but in your browser. No DOSBox required. No excuses for losing either.
+
+The goal is simple: place at least 10 connected pipe segments before the water finds a dead end and floods your screen. Sounds easy? The countdown timer begs to differ.
+
+## Features
+
+- 11 pipe types (straight, elbow, cross, T-junctions)
+- 5-piece preview queue so you can plan ahead (or panic ahead)
+- 3 discards per game for those moments when RNG hates you
+- Score tracking for bragging rights
+- Clean canvas rendering because we're not savages
+- 100+ tests because untested code is just optimistic guessing
+
+## Quick Start
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000 and start clicking.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Controls
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Click** - Place the current pipe
+- **D** - Discard current piece (limited uses)
+- **R** - Restart game
 
-## Learn More
+## How to Win
 
-To learn more about Next.js, take a look at the following resources:
+1. Water starts flowing after a 5-second countdown
+2. Place pipes to create a connected path
+3. Reach 10+ segments before hitting a dead end
+4. Don't flood
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+That's it. Simple in theory. Humbling in practice.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Tech Stack
 
-## Deploy on Vercel
+- Next.js 14 with App Router
+- TypeScript (strict mode, because we have standards)
+- HTML5 Canvas for rendering
+- Tailwind CSS for the UI
+- Jest for testing
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/           # Next.js app router
+├── components/    # React components
+│   ├── GameCanvas.tsx
+│   ├── HUD.tsx
+│   ├── Queue.tsx
+│   └── GameOver.tsx
+└── game/          # Game logic
+    ├── types.ts
+    ├── constants.ts
+    ├── Pipe.ts
+    ├── Grid.ts
+    ├── Flow.ts
+    ├── Game.ts
+    ├── Renderer.ts
+    └── __tests__/
+```
+
+## Development
+
+```bash
+npm run dev      # Start dev server
+npm run build    # Production build
+npm test         # Run tests
+npm run lint     # Lint check
+```
+
+## Philosophy
+
+1. Simple mechanics, emergent challenge
+2. No tutorials needed - figure it out like we used to
+3. Quick games, instant restarts
+4. Satisfying when it works, educational when it doesn't
+
+## License
+
+MIT
+
+## Author
+
+Katie
+
+---
+
+*Water finds a way. Usually through your worst-placed pipe.*
