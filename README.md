@@ -16,6 +16,7 @@ The goal is simple: place at least 10 connected pipe segments before the water f
 - Score tracking for bragging rights
 - Clean canvas rendering because we're not savages
 - Retro sound effects (synthesized via Web Audio API)
+- Per-level leaderboard (track your best pipe runs)
 - 110+ tests because untested code is just optimistic guessing
 
 ## Quick Start
