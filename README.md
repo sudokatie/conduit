@@ -15,7 +15,8 @@ The goal is simple: place at least 10 connected pipe segments before the water f
 - 3 discards per game for those moments when RNG hates you
 - Score tracking for bragging rights
 - Clean canvas rendering because we're not savages
-- 100+ tests because untested code is just optimistic guessing
+- Retro sound effects (synthesized via Web Audio API)
+- 110+ tests because untested code is just optimistic guessing
 
 ## Quick Start
 

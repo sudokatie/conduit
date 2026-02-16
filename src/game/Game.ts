@@ -2,6 +2,7 @@ import { GameState, GameStatus, PipeType, Position } from './types';
 import { Grid } from './Grid';
 import { Flow } from './Flow';
 import { generateRandomPipe } from './Pipe';
+import { Sound } from './Sound';
 import {
   QUEUE_SIZE,
   MAX_DISCARDS,
@@ -106,6 +107,7 @@ export class Game {
     // Remove placed pipe from queue and add new one
     this.queue.shift();
     this.queue.push(generateRandomPipe());
+    Sound.play('pipePlace');
 
     return true;
   }
@@ -128,6 +130,7 @@ export class Game {
     this.queue.shift();
     this.queue.push(generateRandomPipe());
     this.state.discards--;
+    Sound.play('pipeDiscard');
 
     return true;
   }
@@ -202,8 +205,11 @@ export class Game {
     if (!result) {
       // Water couldn't advance - flooded
       this.state.status = 'flooded';
+      Sound.play('levelFail');
       return;
     }
+    
+    Sound.play('waterFlow');
 
     // Water advanced successfully
     const pos = this.flow.getCurrentPosition();
@@ -260,8 +266,10 @@ export class Game {
     if (this.isWin()) {
       this.state.status = 'won';
       this.state.score = this.calculateFinalScore();
+      Sound.play('levelComplete');
     } else {
       this.state.status = 'flooded';
+      Sound.play('levelFail');
     }
   }
 
@@ -305,5 +313,16 @@ export class Game {
   // Restart the game
   restart(): void {
     this.start();
+  }
+
+  // Sound toggle
+  toggleSound(): boolean {
+    const newState = !Sound.isEnabled();
+    Sound.setEnabled(newState);
+    return newState;
+  }
+
+  isSoundEnabled(): boolean {
+    return Sound.isEnabled();
   }
 }
