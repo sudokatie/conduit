@@ -90,12 +90,33 @@ export function GameCanvas({ game, onGameUpdate }: GameCanvasProps) {
     [game, onGameUpdate]
   );
 
+  // Handle touch to place pipe (same as click)
+  const handleTouch = useCallback(
+    (e: React.TouchEvent<HTMLCanvasElement>) => {
+      e.preventDefault();
+      const canvas = canvasRef.current;
+      if (!canvas || e.changedTouches.length !== 1) return;
+
+      const touch = e.changedTouches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor((touch.clientX - rect.left) / CELL_SIZE);
+      const y = Math.floor((touch.clientY - rect.top) / CELL_SIZE);
+
+      if (game.canPlaceAt(x, y)) {
+        game.placePipe(x, y);
+        onGameUpdate();
+      }
+    },
+    [game, onGameUpdate]
+  );
+
   return (
     <canvas
       ref={canvasRef}
       width={CANVAS_WIDTH}
       height={CANVAS_HEIGHT}
       onClick={handleClick}
+      onTouchEnd={handleTouch}
       className="border-2 border-gray-700 rounded cursor-pointer"
     />
   );
