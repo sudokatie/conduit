@@ -31,7 +31,7 @@ export class Leaderboard {
     } catch {
       this.data = {};
     }
-    return this.data;
+    return this.data ?? {};
   }
 
   private static save(): void {

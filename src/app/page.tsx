@@ -6,6 +6,7 @@ import { GameCanvas } from '../components/GameCanvas';
 import { HUD } from '../components/HUD';
 import { Queue } from '../components/Queue';
 import { GameOver } from '../components/GameOver';
+import { PauseMenu } from '../components/PauseMenu';
 
 export default function Home() {
   const gameRef = useRef<Game | null>(null);
@@ -61,6 +62,13 @@ export default function Home() {
     }
   }, []);
 
+  const handleTogglePause = useCallback(() => {
+    if (gameRef.current) {
+      gameRef.current.togglePause();
+      forceUpdate({});
+    }
+  }, []);
+
   if (!gameRef.current) {
     return (
       <div className="min-h-screen bg-gray-900 flex items-center justify-center">
@@ -109,6 +117,9 @@ export default function Home() {
 
       {/* Game over modal */}
       <GameOver state={state} onRestart={handleRestart} />
+
+      {/* Pause menu */}
+      {state.paused && <PauseMenu onResume={handleTogglePause} />}
     </div>
   );
 }
