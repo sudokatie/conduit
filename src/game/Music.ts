@@ -3,7 +3,7 @@
  * Generates flowing, relaxing chiptune background music.
  */
 
-type MusicTrack = 'gameplay' | 'menu' | 'victory';
+type MusicTrack = 'gameplay' | 'menu' | 'victory' | 'gameover';
 
 interface Note {
   frequency: number;
@@ -146,6 +146,53 @@ class MusicSystem {
     }));
   }
 
+  // Menu track - anticipatory
+  private getMenuNotes(): Note[] {
+    const bpm = 80;
+    const beat = 60 / bpm;
+    const quarter = beat;
+    const half = beat * 2;
+    return [
+      { note: 'C4', dur: quarter, volume: 0.7 },
+      { note: 'E4', dur: quarter, volume: 0.7 },
+      { note: 'G4', dur: half, volume: 0.6 },
+      { note: 'E4', dur: quarter, volume: 0.6 },
+      { note: 'D4', dur: quarter, volume: 0.5 },
+      { note: 'C4', dur: half, volume: 0.5 },
+    ].map(n => ({ frequency: this.noteToFreq(n.note), duration: n.dur, volume: n.volume }));
+  }
+
+  // Victory track - triumphant
+  private getVictoryNotes(): Note[] {
+    const bpm = 110;
+    const beat = 60 / bpm;
+    const eighth = beat / 2;
+    const quarter = beat;
+    const half = beat * 2;
+    return [
+      { note: 'C4', dur: eighth },
+      { note: 'E4', dur: eighth },
+      { note: 'G4', dur: quarter },
+      { note: 'C5', dur: half },
+      { note: 'G4', dur: eighth },
+      { note: 'C5', dur: half },
+    ].map(n => ({ frequency: this.noteToFreq(n.note), duration: n.dur }));
+  }
+
+  // Game over track - somber
+  private getGameoverNotes(): Note[] {
+    const bpm = 60;
+    const beat = 60 / bpm;
+    const quarter = beat;
+    const half = beat * 2;
+    return [
+      { note: 'E4', dur: quarter, volume: 0.7 },
+      { note: 'D4', dur: quarter, volume: 0.6 },
+      { note: 'C4', dur: half, volume: 0.5 },
+      { note: 'B3', dur: half, volume: 0.4 },
+    ].map(n => ({ frequency: this.noteToFreq(n.note), duration: n.dur, volume: n.volume }));
+  }
+
   private scheduleTrack(notes: Note[]): number {
     const ctx = this.getContext();
     if (!ctx) return 0;
@@ -182,9 +229,16 @@ class MusicSystem {
 
     let notes: Note[];
     switch (this.currentTrack) {
-      case 'gameplay':
-        notes = this.getGameplayNotes();
+      case 'menu':
+        notes = this.getMenuNotes();
         break;
+      case 'victory':
+        notes = this.getVictoryNotes();
+        break;
+      case 'gameover':
+        notes = this.getGameoverNotes();
+        break;
+      case 'gameplay':
       default:
         notes = this.getGameplayNotes();
     }

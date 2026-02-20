@@ -7,6 +7,7 @@ import { HUD } from '../components/HUD';
 import { Queue } from '../components/Queue';
 import { GameOver } from '../components/GameOver';
 import { PauseMenu } from '../components/PauseMenu';
+import { Music } from '../game/Music';
 
 export default function Home() {
   const gameRef = useRef<Game | null>(null);
@@ -79,6 +80,26 @@ export default function Home() {
 
   const game = gameRef.current;
   const state = game.getState();
+
+  // Switch music tracks based on game state
+  useEffect(() => {
+    switch (state.status) {
+      case 'waiting':
+        Music.play('menu');
+        break;
+      case 'playing':
+        if (!state.paused) {
+          Music.play('gameplay');
+        }
+        break;
+      case 'won':
+        Music.play('victory');
+        break;
+      case 'flooded':
+        Music.play('gameover');
+        break;
+    }
+  }, [state.status, state.paused]);
 
   return (
     <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
