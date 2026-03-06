@@ -13,6 +13,18 @@ export function HUD({ state }: HUDProps) {
 
   return (
     <div className="bg-gray-800 rounded-lg p-4 flex flex-col gap-3">
+      {/* Daily Progress */}
+      {state.dailyMode && state.dailyProgress && (
+        <div className="flex justify-between items-center pb-2 border-b border-gray-700">
+          <span className="text-cyan-400 text-sm font-medium">
+            Daily {state.dailyProgress.current}/{state.dailyProgress.total}
+          </span>
+          <span className="text-cyan-400 text-sm">
+            Total: {state.dailyProgress.totalScore}
+          </span>
+        </div>
+      )}
+
       {/* Score */}
       <div className="flex justify-between items-center">
         <span className="text-gray-400 text-sm">Score</span>

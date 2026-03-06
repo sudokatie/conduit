@@ -6,10 +6,12 @@ import { MIN_LENGTH } from '../game/constants';
 interface GameOverProps {
   state: GameState;
   onRestart: () => void;
+  onNextDaily?: () => void;
 }
 
-export function GameOver({ state, onRestart }: GameOverProps) {
+export function GameOver({ state, onRestart, onNextDaily }: GameOverProps) {
   const won = state.status === 'won';
+  const isDaily = state.dailyMode;
 
   if (state.status !== 'won' && state.status !== 'flooded') {
     return null;
@@ -66,18 +68,43 @@ export function GameOver({ state, onRestart }: GameOverProps) {
             : 'So close! Make sure your pipes connect properly.'}
         </p>
 
-        {/* Restart button */}
-        <button
-          onClick={onRestart}
-          className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg transition-colors"
-        >
-          Play Again
-        </button>
+        {/* Daily progress */}
+        {isDaily && state.dailyProgress && (
+          <div className="mb-4 p-3 bg-gray-800 rounded-lg text-center">
+            <div className="text-cyan-400 font-medium">
+              Daily Round {state.dailyProgress.current}/{state.dailyProgress.total}
+            </div>
+            <div className="text-gray-400 text-sm">
+              Total Score: {state.dailyProgress.totalScore}
+            </div>
+          </div>
+        )}
+
+        {/* Button */}
+        {isDaily && onNextDaily ? (
+          <button
+            onClick={onNextDaily}
+            className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          >
+            {state.dailyProgress && state.dailyProgress.current < state.dailyProgress.total
+              ? 'Next Round'
+              : 'Complete Daily'}
+          </button>
+        ) : (
+          <button
+            onClick={onRestart}
+            className="w-full bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+          >
+            Play Again
+          </button>
+        )}
 
         {/* Keyboard hint */}
-        <p className="text-gray-500 text-sm text-center mt-4">
-          Press R to restart
-        </p>
+        {!isDaily && (
+          <p className="text-gray-500 text-sm text-center mt-4">
+            Press R to restart
+          </p>
+        )}
       </div>
     </div>
   );

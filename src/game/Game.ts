@@ -3,6 +3,7 @@ import { Grid } from './Grid';
 import { Flow } from './Flow';
 import { generateRandomPipe } from './Pipe';
 import { Sound } from './Sound';
+import { getDailyLevelIds, DailyLeaderboard, todayString, generateShareCode, SeededRNG, todaySeed } from './Daily';
 import {
   QUEUE_SIZE,
   MAX_DISCARDS,
@@ -26,6 +27,24 @@ export class Game {
   private flowAccumulator: number; // Time accumulator for flow ticks
   private headFillProgress: number; // Animation progress for water head (0-1)
 
+  // Daily challenge state
+  private dailyMode: boolean = false;
+  private dailyLevels: number[] = [];
+  private dailyLevelIndex: number = 0;
+  private dailyTotalScore: number = 0;
+  private dailyTotalPipes: number = 0;
+  private dailyStartTime: number = 0;
+  private dailyRng: SeededRNG | null = null;
+
+  // Callbacks
+  onDailyComplete?: (result: {
+    totalScore: number;
+    totalPipes: number;
+    levelsCompleted: number;
+    timeSeconds: number;
+    shareCode: string;
+  }) => void;
+
   constructor() {
     this.grid = new Grid();
     this.flow = new Flow(this.grid);
@@ -45,6 +64,7 @@ export class Game {
       flowTimer: FLOW_INTERVAL,
       paused: false,
       elapsedTime: 0,
+      dailyMode: this.dailyMode,
     };
   }
 
@@ -82,7 +102,19 @@ export class Game {
   }
 
   getState(): GameState {
-    return { ...this.state };
+    const state = { ...this.state };
+    state.dailyMode = this.dailyMode;
+    
+    if (this.dailyMode) {
+      state.dailyProgress = {
+        current: this.dailyLevelIndex + 1,
+        total: this.dailyLevels.length,
+        totalScore: this.dailyTotalScore + this.state.score,
+        totalPipes: this.dailyTotalPipes + this.state.length,
+      };
+    }
+    
+    return state;
   }
 
   getStatus(): GameStatus {
@@ -324,5 +356,82 @@ export class Game {
 
   isSoundEnabled(): boolean {
     return Sound.isEnabled();
+  }
+
+  /** Start a daily challenge */
+  startDaily(): void {
+    this.dailyMode = true;
+    this.dailyLevels = [0, 1, 2]; // 3 rounds
+    this.dailyLevelIndex = 0;
+    this.dailyTotalScore = 0;
+    this.dailyTotalPipes = 0;
+    this.dailyStartTime = Date.now();
+    this.dailyRng = new SeededRNG(todaySeed());
+    
+    this.start();
+  }
+
+  /** Advance to next daily level or complete */
+  nextDailyLevel(): void {
+    if (!this.dailyMode) return;
+    
+    this.dailyTotalScore += this.calculateFinalScore();
+    this.dailyTotalPipes += this.state.length;
+    this.dailyLevelIndex++;
+    
+    if (this.dailyLevelIndex < this.dailyLevels.length) {
+      this.start();
+    } else {
+      // Daily complete
+      const timeSeconds = Math.floor((Date.now() - this.dailyStartTime) / 1000);
+      const shareCode = generateShareCode(todayString(), this.dailyTotalScore, this.dailyLevels.length);
+      
+      this.onDailyComplete?.({
+        totalScore: this.dailyTotalScore,
+        totalPipes: this.dailyTotalPipes,
+        levelsCompleted: this.dailyLevels.length,
+        timeSeconds,
+        shareCode,
+      });
+    }
+  }
+
+  /** Exit daily mode */
+  exitDaily(): void {
+    this.dailyMode = false;
+    this.dailyLevels = [];
+    this.dailyLevelIndex = 0;
+    this.dailyTotalScore = 0;
+    this.dailyTotalPipes = 0;
+    this.dailyRng = null;
+    
+    this.state = this.createInitialState();
+  }
+
+  /** Submit daily score */
+  submitDailyScore(name: string): number | null {
+    const timeSeconds = Math.floor((Date.now() - this.dailyStartTime) / 1000);
+    return DailyLeaderboard.recordScore(
+      name,
+      this.dailyTotalScore,
+      this.dailyTotalPipes,
+      this.dailyLevels.length,
+      timeSeconds
+    );
+  }
+
+  /** Check if in daily mode */
+  isDailyMode(): boolean {
+    return this.dailyMode;
+  }
+
+  /** Get daily progress */
+  getDailyProgress(): { current: number; total: number; score: number; pipes: number } {
+    return {
+      current: this.dailyLevelIndex + 1,
+      total: this.dailyLevels.length,
+      score: this.dailyTotalScore + this.state.score,
+      pipes: this.dailyTotalPipes + this.state.length,
+    };
   }
 }

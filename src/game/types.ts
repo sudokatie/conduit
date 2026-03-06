@@ -43,6 +43,14 @@ export interface GameState {
   flowTimer: number; // Time until next flow tick
   paused: boolean; // Game is paused
   elapsedTime: number; // Total time since water started flowing
+  // Daily challenge
+  dailyMode: boolean;
+  dailyProgress?: {
+    current: number;
+    total: number;
+    totalScore: number;
+    totalPipes: number;
+  };
 }
 
 export interface FlowState {

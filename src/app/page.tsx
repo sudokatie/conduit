@@ -7,16 +7,33 @@ import { HUD } from '../components/HUD';
 import { Queue } from '../components/Queue';
 import { GameOver } from '../components/GameOver';
 import { PauseMenu } from '../components/PauseMenu';
+import { TitleScreen } from '../components/TitleScreen';
+import { DailyComplete } from '../components/DailyComplete';
 import { Music } from '../game/Music';
 
 export default function Home() {
   const gameRef = useRef<Game | null>(null);
   const [, forceUpdate] = useState({});
+  const [showTitle, setShowTitle] = useState(true);
+  const [dailyResult, setDailyResult] = useState<{
+    totalScore: number;
+    totalPipes: number;
+    levelsCompleted: number;
+    timeSeconds: number;
+  } | null>(null);
 
   // Initialize game
   useEffect(() => {
-    gameRef.current = new Game();
-    gameRef.current.start();
+    const game = new Game();
+    game.onDailyComplete = (result) => {
+      setDailyResult({
+        totalScore: result.totalScore,
+        totalPipes: result.totalPipes,
+        levelsCompleted: result.levelsCompleted,
+        timeSeconds: result.timeSeconds,
+      });
+    };
+    gameRef.current = game;
     forceUpdate({});
   }, []);
 
@@ -63,6 +80,38 @@ export default function Home() {
     }
   }, []);
 
+  const handleStart = useCallback(() => {
+    if (gameRef.current) {
+      gameRef.current.start();
+      setShowTitle(false);
+      forceUpdate({});
+    }
+  }, []);
+
+  const handleStartDaily = useCallback(() => {
+    if (gameRef.current) {
+      gameRef.current.startDaily();
+      setShowTitle(false);
+      forceUpdate({});
+    }
+  }, []);
+
+  const handleDailyClose = useCallback(() => {
+    setDailyResult(null);
+    if (gameRef.current) {
+      gameRef.current.exitDaily();
+    }
+    setShowTitle(true);
+    forceUpdate({});
+  }, []);
+
+  const handleNextDaily = useCallback(() => {
+    if (gameRef.current && gameRef.current.isDailyMode()) {
+      gameRef.current.nextDailyLevel();
+      forceUpdate({});
+    }
+  }, []);
+
   const handleTogglePause = useCallback(() => {
     if (gameRef.current) {
       gameRef.current.togglePause();
@@ -76,6 +125,10 @@ export default function Home() {
         <div className="text-white text-xl">Loading...</div>
       </div>
     );
+  }
+
+  if (showTitle) {
+    return <TitleScreen onStart={handleStart} onStartDaily={handleStartDaily} />;
   }
 
   const game = gameRef.current;
@@ -137,10 +190,26 @@ export default function Home() {
       </div>
 
       {/* Game over modal */}
-      <GameOver state={state} onRestart={handleRestart} />
+      <GameOver 
+        state={state} 
+        onRestart={handleRestart}
+        onNextDaily={state.dailyMode ? handleNextDaily : undefined}
+      />
 
       {/* Pause menu */}
       {state.paused && <PauseMenu onResume={handleTogglePause} />}
+
+      {/* Daily Complete modal */}
+      {dailyResult && (
+        <DailyComplete
+          totalScore={dailyResult.totalScore}
+          totalPipes={dailyResult.totalPipes}
+          levelsCompleted={dailyResult.levelsCompleted}
+          timeSeconds={dailyResult.timeSeconds}
+          onSubmit={() => {}}
+          onClose={handleDailyClose}
+        />
+      )}
     </div>
   );
 }
