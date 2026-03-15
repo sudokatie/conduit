@@ -4,6 +4,7 @@ import { Flow } from './Flow';
 import { generateRandomPipe } from './Pipe';
 import { Sound } from './Sound';
 import { getDailyLevelIds, DailyLeaderboard, todayString, generateShareCode, SeededRNG, todaySeed } from './Daily';
+import { Replay, ReplayData, ReplayAction } from './Replay';
 import {
   QUEUE_SIZE,
   MAX_DISCARDS,
@@ -36,6 +37,11 @@ export class Game {
   private dailyStartTime: number = 0;
   private dailyRng: SeededRNG | null = null;
 
+  // Replay state
+  private replay: Replay = new Replay();
+  private replayMode: boolean = false;
+  private replayData: ReplayData | null = null;
+
   // Callbacks
   onDailyComplete?: (result: {
     totalScore: number;
@@ -44,6 +50,7 @@ export class Game {
     timeSeconds: number;
     shareCode: string;
   }) => void;
+  onGameOver?: (replayData: ReplayData) => void;
 
   constructor() {
     this.grid = new Grid();
@@ -75,6 +82,11 @@ export class Game {
     this.state = this.createInitialState();
     this.flowAccumulator = 0;
     this.headFillProgress = 0;
+    
+    // Start recording if not in replay mode
+    if (!this.replayMode) {
+      this.replay.startRecording(this.dailyMode, this.dailyLevelIndex);
+    }
   }
 
   private generateQueue(count: number): PipeType[] {
@@ -136,6 +148,11 @@ export class Game {
       return false;
     }
 
+    // Record for replay
+    if (!this.replayMode && this.replay.isRecording) {
+      this.replay.recordPlace(x, y);
+    }
+
     // Remove placed pipe from queue and add new one
     this.queue.shift();
     this.queue.push(generateRandomPipe());
@@ -156,6 +173,11 @@ export class Game {
 
     if (this.queue.length === 0) {
       return false;
+    }
+
+    // Record for replay
+    if (!this.replayMode && this.replay.isRecording) {
+      this.replay.recordDiscard();
     }
 
     // Remove current pipe and add new one
@@ -236,8 +258,19 @@ export class Game {
 
     if (!result) {
       // Water couldn't advance - flooded
-      this.state.status = 'flooded';
-      Sound.play('levelFail');
+      this.state.status = this.isWin() ? 'won' : 'flooded';
+      if (this.state.status === 'won') {
+        this.state.score = this.calculateFinalScore();
+        Sound.play('levelComplete');
+      } else {
+        Sound.play('levelFail');
+      }
+      
+      // Stop recording and emit replay data
+      if (!this.replayMode && !this.dailyMode && this.replay.isRecording) {
+        const replayData = this.replay.stopRecording(this.state.score, this.state.length);
+        this.onGameOver?.(replayData);
+      }
       return;
     }
     
@@ -433,5 +466,63 @@ export class Game {
       score: this.dailyTotalScore + this.state.score,
       pipes: this.dailyTotalPipes + this.state.length,
     };
+  }
+
+  // Replay methods
+
+  /** Start playing a replay */
+  startReplay(data: ReplayData): void {
+    this.replayMode = true;
+    this.replayData = data;
+    this.start();
+    this.replay.startPlayback(data);
+  }
+
+  /** Stop replay playback */
+  stopReplay(): void {
+    this.replay.stopPlayback();
+    this.replayMode = false;
+    this.replayData = null;
+  }
+
+  /** Check if in replay mode */
+  isReplayMode(): boolean {
+    return this.replayMode;
+  }
+
+  /** Get replay playback progress (0-1) */
+  getReplayProgress(): number {
+    return this.replay.playbackProgress;
+  }
+
+  /** Process replay action (call each frame during replay) */
+  processReplayAction(): void {
+    if (!this.replayMode || !this.replay.isPlaying) return;
+    
+    const action = this.replay.getNextAction();
+    if (action) {
+      if (action.type === 'place') {
+        // Directly place without recording
+        const currentPipe = this.getCurrentPipe();
+        if (currentPipe && this.grid.placePipe(action.x, action.y, currentPipe)) {
+          this.queue.shift();
+          this.queue.push(generateRandomPipe());
+          Sound.play('pipePlace');
+        }
+      } else if (action.type === 'discard') {
+        // Directly discard without recording
+        if (this.state.discards > 0 && this.queue.length > 0) {
+          this.queue.shift();
+          this.queue.push(generateRandomPipe());
+          this.state.discards--;
+          Sound.play('pipeDiscard');
+        }
+      }
+    }
+  }
+
+  /** Check if replay playback is complete */
+  isReplayComplete(): boolean {
+    return this.replay.isPlaybackComplete;
   }
 }

@@ -121,7 +121,7 @@ export default function Home() {
 
   if (!gameRef.current) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-white text-xl">Loading...</div>
       </div>
     );
@@ -155,7 +155,7 @@ export default function Home() {
   }, [state.status, state.paused]);
 
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4">
       {/* Title */}
       <h1 className="text-4xl font-bold text-cyan-400 mb-6">Conduit</h1>
 
